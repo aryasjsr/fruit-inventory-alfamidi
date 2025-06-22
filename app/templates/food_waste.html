@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="mb-4">Kelola Food Waste</h2>
+
+<div class="row">
+    <div class="col-md-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Catat Food Waste Baru</h5>
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.product_id.label(class="form-label") }}
+                        {{ form.product_id(class="form-select") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.quantity.label(class="form-label") }}
+                        {{ form.quantity(class="form-control") }}
+                    </div>
+                     <div class="mb-3">
+                        {{ form.reason.label(class="form-label") }}
+                        {{ form.reason(class="form-control") }}
+                    </div>
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-danger") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7">
+         <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Riwayat Food Waste</h5>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Produk</th>
+                                <th>Jumlah</th>
+                                <th>Alasan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for waste in wastes %}
+                            <tr>
+                                <td>{{ waste.recorded_at.strftime('%d-%m-%Y') }}</td>
+                                <td>{{ waste.product.name }}</td>
+                                <td>{{ waste.quantity }}</td>
+                                <td>{{ waste.reason }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center">Belum ada data food waste.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

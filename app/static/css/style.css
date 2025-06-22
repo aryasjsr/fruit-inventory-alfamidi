@@ -1,0 +1,31 @@
+/* Custom Styles for Flask Inventory App */
+body {
+    font-family: 'Nunito', sans-serif;
+}
+
+.card .border-left-primary {
+    border-left: .25rem solid #4e73df!important;
+}
+
+.card .border-left-success {
+    border-left: .25rem solid #1cc88a!important;
+}
+
+.card .border-left-warning {
+    border-left: .25rem solid #f6c23e!important;
+}
+
+.card .border-left-danger {
+    border-left: .25rem solid #e74a3b!important;
+}
+
+.text-xs {
+    font-size: .7rem;
+}
+.text-gray-300 {
+    color: #dddfeb!important;
+}
+.navbar-logo {
+    height: 50px; /* Ukuran diperkecil */
+    width: auto;
+}

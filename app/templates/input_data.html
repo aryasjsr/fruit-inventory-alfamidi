@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Manajemen Data Barang</h2>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+        <i class="fas fa-plus"></i> Tambah Produk
+    </button>
+</div>
+
+<!-- Tabel Data Produk -->
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nama Produk</th>
+                        <th>Stok</th>
+                        <th>Tgl Terima</th>
+                        <th>Tgl Kadaluarsa</th>
+                        <th>Kondisi</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td>{{ product.id }}</td>
+                        <td>{{ product.name }}</td>
+                        <td>{{ product.current_quantity }}</td>
+                        <td>{{ product.reception_date.strftime('%d-%m-%Y') }}</td>
+                        <td>{{ product.expiry_date.strftime('%d-%m-%Y') }}</td>
+                        <td>{{ product.condition }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editProductModal{{ product.id }}"><i class="fas fa-edit"></i></button>
+                            <form action="{{ url_for('main.delete_product', product_id=product.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus produk ini?')"><i class="fas fa-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    <!-- Modal Edit Produk -->
+                    <div class="modal fade" id="editProductModal{{ product.id }}" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="editModalLabel">Edit Produk</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form action="{{ url_for('main.edit_product', product_id=product.id) }}" method="POST">
+                                        <div class="mb-3">
+                                            <label for="name" class="form-label">Nama Produk</label>
+                                            <input type="text" class="form-control" name="name" value="{{ product.name }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="quantity" class="form-label">Jumlah Stok</label>
+                                            <input type="number" class="form-control" name="quantity" value="{{ product.current_quantity }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="reception_date" class="form-label">Tanggal Penerimaan</label>
+                                            <input type="date" class="form-control" name="reception_date" value="{{ product.reception_date.isoformat() }}" required>
+                                        </div>
+                                         <div class="mb-3">
+                                            <label for="expiry_date" class="form-label">Tanggal Kadaluarsa</label>
+                                            <input type="date" class="form-control" name="expiry_date" value="{{ product.expiry_date.isoformat() }}" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center">Belum ada data produk.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Tambah Produk -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addModalLabel">Tambah Produk Baru</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.name.label(class="form-label") }}
+                        {{ form.name(class="form-control") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.quantity.label(class="form-label") }}
+                        {{ form.quantity(class="form-control") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.reception_date.label(class="form-label") }}
+                        {{ form.reception_date(class="form-control", value=today.isoformat()) }}
+                    </div>
+                     <div class="mb-3">
+                        {{ form.expiry_date.label(class="form-label") }}
+                        {{ form.expiry_date(class="form-control") }}
+                    </div>
+                     <div class="mb-3">
+                        {{ form.condition.label(class="form-label") }}
+                        {{ form.condition(class="form-control") }}
+                    </div>
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

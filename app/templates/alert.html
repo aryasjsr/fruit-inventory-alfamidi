@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="mb-4">Sistem Peringatan Kadaluarsa</h2>
+
+{% set show_alert = namespace(value=false) %}
+
+{% for product in products %}
+    {% if product.days_to_expiry <= 0 %}
+        {% set show_alert.value = true %}
+    {% endif %}
+{% endfor %}
+
+{% if show_alert.value %}
+<div class="alert alert-danger" role="alert">
+  <h4 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Peringatan!</h4>
+  <p>Ada produk yang telah atau akan kadaluarsa hari ini. Segera periksa dan lakukan tindakan.</p>
+</div>
+{% endif %}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Nama Produk</th>
+                        <th>Stok</th>
+                        <th>Tanggal Kadaluarsa</th>
+                        <th>Sisa Waktu</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                        {% set days = product.days_to_expiry %}
+                        {% if days < 0 %}
+                            {% set status_class = 'table-danger' %}
+                            {% set status_text = 'Telah Kadaluarsa' %}
+                            {% set remaining_text = 'Lewat ' ~ -days ~ ' hari' %}
+                        {% elif days == 0 %}
+                            {% set status_class = 'table-danger' %}
+                            {% set status_text = 'Kadaluarsa Hari Ini' %}
+                             {% set remaining_text = 'Hari ini' %}
+                        {% elif days <= 5 %}
+                            {% set status_class = 'table-warning' %}
+                            {% set status_text = 'Segera Kadaluarsa' %}
+                             {% set remaining_text = days ~ ' hari lagi' %}
+                        {% else %}
+                            {% set status_class = 'table-success' %}
+                            {% set status_text = 'Aman' %}
+                             {% set remaining_text = days ~ ' hari lagi' %}
+                        {% endif %}
+
+                        <tr class="{{ status_class }}">
+                            <td>{{ product.name }}</td>
+                            <td>{{ product.current_quantity }}</td>
+                            <td>{{ product.expiry_date.strftime('%d %B %Y') }}</td>
+                            <td>{{ remaining_text }}</td>
+                            <td><strong>{{ status_text }}</strong></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
