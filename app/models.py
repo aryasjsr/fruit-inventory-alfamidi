@@ -1,7 +1,7 @@
 from app import db, login_manager
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-from datetime import date
+from datetime import date,datetime
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -16,6 +16,9 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(256), nullable=False)
     level = db.Column(db.Integer, nullable=False, default=0) # 0: PKL, 1: Admin
+
+    # Relasi dengan tabel login logs
+    logs = db.relationship('LoginLog', backref='user', lazy='dynamic', cascade="all, delete-orphan")
 
     def set_password(self, password):
         """Membuat hash dari password."""
@@ -57,3 +60,14 @@ class FoodWaste(db.Model):
     recorded_at = db.Column(db.Date, default=date.today)
 
     product = db.relationship('Product', backref=db.backref('wastes', lazy=True))
+
+class LoginLog(db.Model):
+    """Model untuk mencatat riwayat login."""
+    __tablename__ = 'login_logs'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    username = db.Column(db.String(50), nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<LoginLog {self.username} at {self.timestamp}>'

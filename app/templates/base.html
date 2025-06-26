@@ -40,6 +40,13 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.reports') }}">Laporan</a>
                     </li>
+                    {% if current_user.level == 1 %}
+                    <li class="nav-item">
+                        <a class="nav-link fw-bold text-warning" href="{{ url_for('main.admin_dashboard') }}">
+                            <i class="fas fa-user-shield"></i> Admin
+                        </a>
+                    </li>
+                    {% endif %}
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item dropdown">

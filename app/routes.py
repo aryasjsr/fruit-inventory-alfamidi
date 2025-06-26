@@ -3,14 +3,29 @@ from flask import (
 )
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db
-from app.models import User, Product, FoodWaste
+from app.models import User, Product, FoodWaste, LoginLog
 from app.forms import RegisterForm, LoginForm, ProductForm, FoodWasteForm
 from datetime import date, timedelta
 import pandas as pd
 import io
+from functools import wraps
 
 # Membuat Blueprint
 main = Blueprint('main', __name__)
+
+# === DECORATOR BARU UNTUK ADMIN ===
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.level != 1:
+            flash('Halaman ini hanya bisa diakses oleh Admin.', 'warning')
+            return redirect(url_for('main.dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+
+
 
 # --- Rute Otentikasi ---
 
@@ -22,9 +37,30 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user and user.check_password(form.password.data):
-            login_user(user, remember=True)
-            flash('Login berhasil!', 'success')
-            return redirect(url_for('main.dashboard'))
+            
+            # === PERBAIKAN LOGIKA PENCATATAN LOGIN ===
+            # Proses login dan pencatatan dijadikan satu transaksi
+            try:
+                # 1. Lakukan Login
+                login_user(user, remember=True)
+                
+                # 2. Buat entri log
+                log_entry = LoginLog(user_id=user.id, username=user.username)
+                db.session.add(log_entry)
+                
+                # 3. Commit ke database
+                db.session.commit()
+                
+                # 4. Beri pesan sukses HANYA jika semua berhasil
+                flash('Login berhasil!', 'success')
+                
+                return redirect(url_for('main.dashboard'))
+
+            except Exception as e:
+                # Jika ada error, batalkan semua perubahan
+                db.session.rollback()
+                flash(f'Terjadi error saat proses login: {e}', 'danger')
+                return redirect(url_for('main.login'))
         else:
             flash('Login gagal. Periksa kembali email dan password Anda.', 'danger')
     return render_template('login.html', title='Login', form=form)
@@ -203,3 +239,27 @@ def export_reports():
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": "attachment;filename=laporan_stok_buah.xlsx"}
     )
+
+@main.route('/admin')
+@login_required
+@admin_required
+def admin_dashboard():
+    # Ambil data log, urutkan dari yang terbaru
+    logs = LoginLog.query.order_by(LoginLog.timestamp.desc()).all()
+    # Ambil data pengguna dengan level 0 (Anak PKL)
+    pkl_users = User.query.filter_by(level=0).all()
+    return render_template('admin.html', title='Panel Admin', logs=logs, pkl_users=pkl_users)
+
+@main.route('/admin/delete_user/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_user(user_id):
+    user_to_delete = User.query.get_or_404(user_id)
+    # Keamanan tambahan: pastikan hanya akun level 0 yang bisa dihapus
+    if user_to_delete.level == 0:
+        db.session.delete(user_to_delete)
+        db.session.commit()
+        flash(f'Akun "{user_to_delete.username}" berhasil dihapus.', 'success')
+    else:
+        flash('Hanya akun level PKL yang dapat dihapus.', 'warning')
+    return redirect(url_for('main.admin_dashboard'))
