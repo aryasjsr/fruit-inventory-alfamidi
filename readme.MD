@@ -43,11 +43,13 @@ Berikut adalah langkah-langkah untuk menjalankan proyek ini secara lokal.
 ### 2. Clone Repositori
 
 ```bash
-git clone [URL_REPOSITORI_ANDA]
-cd fruit-inventory-app
+git clone https://github.com/aryasjsr/fruit-inventory-alfamidi.git
+cd fruit-inventory-alfamidi
+---
 
-3. Setup Lingkungan
+###3. Setup Lingkungan
 Buat dan aktifkan Virtual Environment:
+
 
 # Windows
 python -m venv venv
